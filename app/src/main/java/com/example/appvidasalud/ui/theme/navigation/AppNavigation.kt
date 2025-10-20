@@ -1,0 +1,30 @@
+package com.example.appvidasalud.ui.theme.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.appvidasalud.ui.theme.view.HomeScreen
+import com.example.appvidasalud.ui.theme.view.LoginScreen
+
+@Composable
+fun AppNavigation() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "login") {
+
+        composable("login") {
+            LoginScreen(navController = navController)
+        }
+
+        composable(
+            route = "home/{userName}",
+            arguments = listOf(navArgument("userName") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userName = backStackEntry.arguments?.getString("userName") ?: "Usuario"
+            // Ahora le pasamos el navController al HomeScreen
+            HomeScreen(navController = navController, userName = userName)
+        }
+    }
+}

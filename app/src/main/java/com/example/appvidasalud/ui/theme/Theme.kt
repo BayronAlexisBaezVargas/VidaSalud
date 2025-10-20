@@ -11,6 +11,21 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
+import androidx.compose.ui.graphics.Color
+
+// Paleta de colores de la App
+val GreenPrimary = Color(0xFF4CAF50)
+val TextWhite = Color.White
+val CardBackground = Color.White
+val ScreenBackground = Color(0xFFF0F4F7)
+val IconTintColor = Color(0xFF757575)
+
+// Colores para los botones de acciones rápidas
+val OrangeAction = Color(0xFFFE7575)
+val BlueAction = Color(0xFF5A9DFF)
+val PinkAction = Color(0xFFE86B9E)
+val YellowAction = Color(0xFFF7C168)
+
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
