@@ -8,7 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.appvidasalud.ui.theme.view.HomeScreen
 import com.example.appvidasalud.ui.theme.view.LoginScreen
-
+import com.example.appvidasalud.ui.theme.view.TrainingScreen
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -25,6 +25,9 @@ fun AppNavigation() {
             val userName = backStackEntry.arguments?.getString("userName") ?: "Usuario"
             // Ahora le pasamos el navController al HomeScreen
             HomeScreen(navController = navController, userName = userName)
+        }
+        composable("training") {
+            TrainingScreen(navController = navController)
         }
     }
 }

@@ -8,6 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +38,7 @@ fun HomeScreen(
         healthViewModel.updateUserName(userName)
     }
 
+
     val uiState by healthViewModel.uiState.collectAsState()
     val healthData = uiState.healthData
 
@@ -63,7 +66,8 @@ fun HomeScreen(
                 }
             )
             SummaryGrid(healthData = healthData)
-            QuickActionsSection()
+            // MODIFICACIÓN: Pasamos el navController a QuickActionsSection
+            QuickActionsSection(navController = navController)
             DailyProgressSection(progress = healthData.stepGoalProgress)
         }
     }
@@ -184,26 +188,31 @@ fun StatCard(icon: ImageVector, value: String, label: String, modifier: Modifier
     }
 }
 
+// MODIFICACIÓN COMPLETA: Nueva firma y lógica
 @Composable
-fun QuickActionsSection() {
+fun QuickActionsSection(navController: NavController) { // Aceptar NavController
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text("Acciones Rápidas", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 16.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            QuickActionButton("Entrenar", Icons.Default.FitnessCenter, OrangeAction, Modifier.weight(1f))
-            QuickActionButton("Beber Agua", Icons.Default.LocalDrink, BlueAction, Modifier.weight(1f))
+            // MODIFICACIÓN: Implementación de la acción de Entrenar
+            QuickActionButton("Entrenar", Icons.Default.FitnessCenter, OrangeAction, Modifier.weight(1f)) {
+                navController.navigate("training") // NAVEGACIÓN A LA NUEVA PANTALLA
+            }
+            QuickActionButton("Beber Agua", Icons.Default.LocalDrink, BlueAction, Modifier.weight(1f)) { /* Acción futura */ }
         }
         Spacer(modifier = Modifier.height(16.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            QuickActionButton("Registrar Comida", Icons.Default.Restaurant, PinkAction, Modifier.weight(1f))
-            QuickActionButton("Peso", Icons.Default.MonitorWeight, YellowAction, Modifier.weight(1f))
+            QuickActionButton("Registrar Comida", Icons.Default.Restaurant, PinkAction, Modifier.weight(1f)) { /* Acción futura */ }
+            QuickActionButton("Peso", Icons.Default.MonitorWeight, YellowAction, Modifier.weight(1f)) { /* Acción futura */ }
         }
     }
 }
 
+// MODIFICACIÓN COMPLETA: Nueva firma para aceptar la acción
 @Composable
-fun QuickActionButton(text: String, icon: ImageVector, color: Color, modifier: Modifier = Modifier) {
+fun QuickActionButton(text: String, icon: ImageVector, color: Color, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Button(
-        onClick = { /* Acción a realizar */ },
+        onClick = onClick, // Usamos el lambda de onClick
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(containerColor = color),
         modifier = modifier
