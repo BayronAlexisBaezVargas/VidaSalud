@@ -114,10 +114,8 @@ fun RegisterScreen(navController: NavController) {
                     } else if (password != confirmPassword) {
                         error = "Las contraseñas no coinciden"
                     } else {
-                        // Lógica de registro
                         scope.launch {
                             userPrefs.saveUserCredentials(nombre, password)
-                            // Regresamos al login
                             navController.popBackStack()
                         }
                     }

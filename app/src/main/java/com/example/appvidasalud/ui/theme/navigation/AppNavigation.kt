@@ -8,7 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.appvidasalud.ui.theme.view.HomeScreen
 import com.example.appvidasalud.ui.theme.view.LoginScreen
-import com.example.appvidasalud.ui.theme.view.RegisterScreen // <-- Importar pantalla
+import com.example.appvidasalud.ui.theme.view.RegisterScreen
 import com.example.appvidasalud.ui.theme.view.TrainingScreen
 
 @Composable
@@ -19,8 +19,6 @@ fun AppNavigation() {
         composable("login") {
             LoginScreen(navController = navController)
         }
-
-        // --- AÑADIR ESTA RUTA NUEVA ---
         composable("register") {
             RegisterScreen(navController = navController)
         }

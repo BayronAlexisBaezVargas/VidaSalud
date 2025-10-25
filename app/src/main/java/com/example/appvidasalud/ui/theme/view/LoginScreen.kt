@@ -17,8 +17,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.appvidasalud.data.UserPreferencesRepository // <-- Importar el Repo
-import com.example.appvidasalud.ui.theme.GreenPrimary // <-- Importar tu color
+import com.example.appvidasalud.data.UserPreferencesRepository
+import com.example.appvidasalud.ui.theme.GreenPrimary
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -40,12 +40,11 @@ fun LoginScreen(navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // --- INICIO: Cabecera Verde ---
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .background(GreenPrimary), // <-- Aplicar color verde
+                .background(GreenPrimary),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -56,18 +55,15 @@ fun LoginScreen(navController: NavController) {
                 Text(
                     text = "Bienvenido a VidaSalud",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White // <-- Texto blanco
+                    color = Color.White
                 )
                 Text(
                     text = "Inicia sesión o regístrate",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White // <-- Texto blanco
+                    color = Color.White
                 )
             }
         }
-        // --- FIN: Cabecera Verde ---
-
-        // --- INICIO: Campos de Texto ---
         Column(
             modifier = Modifier
                 .weight(2f)
@@ -107,7 +103,6 @@ fun LoginScreen(navController: NavController) {
                 },
                 isError = isError
             )
-
             if (isError) {
                 Text(
                     text = errorMessage,
@@ -146,8 +141,6 @@ fun LoginScreen(navController: NavController) {
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            // Botones de texto (siempre visibles)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
@@ -156,11 +149,10 @@ fun LoginScreen(navController: NavController) {
                     Text("Crear cuenta")
                 }
 
-                TextButton(onClick = { /* TODO: Lógica de olvido de contraseña */ }) {
+                TextButton(onClick = { /* Lógica de olvido de contraseña */ }) {
                     Text("Olvidé mi contraseña")
                 }
             }
         }
-        // --- FIN: Campos de Texto ---
     }
 }

@@ -68,7 +68,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.6.7")
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation(libs.androidx.datastore.preferences)
-    implementation("androidx.compose.material3:material3") // Usamos Material 3
+    implementation("androidx.compose.material3:material3")
 
 
 

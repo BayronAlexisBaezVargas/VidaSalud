@@ -25,11 +25,9 @@ import com.example.appvidasalud.viewmodel.HealthViewModel
 import java.text.NumberFormat
 import java.util.Locale
 import androidx.navigation.NavController
-// Y asegúrate de tener también el import para el NavHost
 import androidx.navigation.compose.rememberNavController
 @Composable
 fun HomeScreen(
-    // Añadimos NavController como parámetro
     navController: NavController,
     healthViewModel: HealthViewModel = viewModel(),
     userName: String
@@ -56,9 +54,7 @@ fun HomeScreen(
             Header(
                 userName = uiState.userName,
                 onLogoutClicked = {
-                    // Lógica para salir de la sesión
                     navController.navigate("login") {
-                        // Limpia todas las pantallas anteriores del historial de navegación
                         popUpTo(navController.graph.startDestinationId) {
                             inclusive = true
                         }
@@ -66,7 +62,6 @@ fun HomeScreen(
                 }
             )
             SummaryGrid(healthData = healthData)
-            // MODIFICACIÓN: Pasamos el navController a QuickActionsSection
             QuickActionsSection(navController = navController)
             DailyProgressSection(progress = healthData.stepGoalProgress)
         }
@@ -80,7 +75,6 @@ fun Header(userName: String, onLogoutClicked: () -> Unit) { // <-- Nuevo paráme
             .fillMaxWidth()
             .background(GreenPrimary)
     ) {
-        // Botón para salir en la esquina superior derecha
         IconButton(
             onClick = onLogoutClicked,
             modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
@@ -112,7 +106,6 @@ fun Header(userName: String, onLogoutClicked: () -> Unit) { // <-- Nuevo paráme
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = "¡Hola, $userName!",
-                // ... (el resto del Header no cambia)
             )
             Text(
                 text = "¿Listo para un día saludable?",
@@ -187,16 +180,13 @@ fun StatCard(icon: ImageVector, value: String, label: String, modifier: Modifier
         }
     }
 }
-
-// MODIFICACIÓN COMPLETA: Nueva firma y lógica
 @Composable
-fun QuickActionsSection(navController: NavController) { // Aceptar NavController
+fun QuickActionsSection(navController: NavController) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text("Acciones Rápidas", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 16.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            // MODIFICACIÓN: Implementación de la acción de Entrenar
             QuickActionButton("Entrenar", Icons.Default.FitnessCenter, OrangeAction, Modifier.weight(1f)) {
-                navController.navigate("training") // NAVEGACIÓN A LA NUEVA PANTALLA
+                navController.navigate("training")
             }
             QuickActionButton("Beber Agua", Icons.Default.LocalDrink, BlueAction, Modifier.weight(1f)) { /* Acción futura */ }
         }
@@ -207,8 +197,6 @@ fun QuickActionsSection(navController: NavController) { // Aceptar NavController
         }
     }
 }
-
-// MODIFICACIÓN COMPLETA: Nueva firma para aceptar la acción
 @Composable
 fun QuickActionButton(text: String, icon: ImageVector, color: Color, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Button(
