@@ -6,9 +6,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+
 data class HealthUiState(
     val userName: String = "María",
-    val healthData: HealthData = HealthData()
+    val healthData: HealthData = HealthData() // <-- Ya se crea con steps = 0
 )
 
 class HealthViewModel : ViewModel() {
@@ -19,4 +20,16 @@ class HealthViewModel : ViewModel() {
             currentState.copy(userName = newName)
         }
     }
+
+    // --- AÑADE ESTA FUNCIÓN ---
+    // Esta función será llamada por el listener del sensor
+    fun updateSteps(stepCount: Int) {
+        _uiState.update { currentState ->
+            // Creamos una nueva copia de healthData con los pasos actualizados
+            val newHealthData = currentState.healthData.copy(steps = stepCount)
+            // Actualizamos el estado
+            currentState.copy(healthData = newHealthData)
+        }
+    }
+    // --- FIN DE LA NUEVA FUNCIÓN ---
 }

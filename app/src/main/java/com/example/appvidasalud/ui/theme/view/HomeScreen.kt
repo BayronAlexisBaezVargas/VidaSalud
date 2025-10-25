@@ -1,4 +1,16 @@
 package com.example.appvidasalud.ui.theme.view
+
+// NUEVO: Importaciones necesarias para el sensor y permisos
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,9 +27,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext // NUEVO: Necesario para el contexto
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat // NUEVO: Necesario para chequear permisos
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appvidasalud.model.HealthData
 import com.example.appvidasalud.ui.theme.*
@@ -25,7 +39,7 @@ import com.example.appvidasalud.viewmodel.HealthViewModel
 import java.text.NumberFormat
 import java.util.Locale
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -36,9 +50,86 @@ fun HomeScreen(
         healthViewModel.updateUserName(userName)
     }
 
-
     val uiState by healthViewModel.uiState.collectAsState()
     val healthData = uiState.healthData
+
+    // --- LÓGICA DE SENSORES Y PERMISOS ---
+
+    // NUEVO: Obtenemos el contexto
+    val context = LocalContext.current
+
+    // NUEVO: Launcher para pedir el permiso de ACTIVITY_RECOGNITION
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // El permiso fue concedido.
+        } else {
+            // El permiso fue denegado. Podrías mostrar un Snackbar.
+        }
+    }
+
+    // NUEVO: Pedir permiso al cargar la pantalla (si es necesario)
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Q = API 29
+            when (PackageManager.PERMISSION_GRANTED) {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACTIVITY_RECOGNITION
+                ) -> {
+                    // El permiso ya está concedido
+                }
+                else -> {
+                    // Pedir el permiso
+                    permissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+                }
+            }
+        }
+    }
+
+    // NUEVO: Configuración del Sensor Manager y el Listener
+    val sensorManager = remember {
+        context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    }
+    val stepSensor = remember {
+        sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+    }
+
+    // NUEVO: El listener que reaccionará a los eventos del sensor
+    val sensorEventListener = remember {
+        object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent?) {
+                if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
+                    val steps = event.values[0].toInt()
+                    // Actualizamos el ViewModel con el nuevo conteo de pasos
+                    healthViewModel.updateSteps(steps)
+                }
+            }
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+                // No es necesario para este caso
+            }
+        }
+    }
+
+    // NUEVO: Registra y cancela el listener según el ciclo de vida de la pantalla
+    DisposableEffect(Unit) {
+        // Registra el listener cuando el composable entra en pantalla
+        if (stepSensor != null) {
+            sensorManager.registerListener(
+                sensorEventListener,
+                stepSensor,
+                SensorManager.SENSOR_DELAY_UI
+            )
+        }
+
+        // Se ejecuta cuando el composable sale de la pantalla
+        onDispose {
+            sensorManager.unregisterListener(sensorEventListener)
+        }
+    }
+
+    // --- FIN DE LÓGICA DE SENSORES ---
+
 
     Scaffold(
         bottomBar = { AppBottomNavigation() }
@@ -50,7 +141,6 @@ fun HomeScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Pasamos la acción de logout al Header
             Header(
                 userName = uiState.userName,
                 onLogoutClicked = {
@@ -61,12 +151,17 @@ fun HomeScreen(
                     }
                 }
             )
+            // El SummaryGrid ahora mostrará los pasos leídos del sensor
             SummaryGrid(healthData = healthData)
             QuickActionsSection(navController = navController)
             DailyProgressSection(progress = healthData.stepGoalProgress)
         }
     }
 }
+
+// ... (El resto del código de HomeScreen.kt no necesita cambios)
+// Header, SummaryGrid, StatCard, QuickActionsSection, QuickActionButton,
+// DailyProgressSection, y AppBottomNavigation se quedan igual.
 
 @Composable
 fun Header(userName: String, onLogoutClicked: () -> Unit) { // <-- Nuevo parámetro
