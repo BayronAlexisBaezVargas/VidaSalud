@@ -70,6 +70,14 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation("androidx.compose.material3:material3")
 
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    
+    implementation(libs.coil.compose)
+}
+
 
 
 
