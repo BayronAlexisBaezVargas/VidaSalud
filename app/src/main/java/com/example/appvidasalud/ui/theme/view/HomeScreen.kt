@@ -43,8 +43,6 @@ import com.example.appvidasalud.viewmodel.HealthViewModelFactory
 import java.text.NumberFormat
 import java.util.Locale
 import androidx.navigation.NavController
-// NUEVO: Quitar esta importación si existe
-// import java.util.Calendar // Ya no se usa aquí
 
 @Composable
 fun HomeScreen(
@@ -126,16 +124,16 @@ fun HomeScreen(
             sensorManager.unregisterListener(sensorEventListener)
         }
     }
-    // --- FIN DE LÓGICA DE SENSORES ---
 
 
-    // --- LÓGICA DE DIÁLOGOS (SIN CAMBIOS) ---
+
+
     var showCaloriesDialog by remember { mutableStateOf(false) }
     var showSleepDialog by remember { mutableStateOf(false) }
 
     if (showCaloriesDialog) {
         AddDataDialog(
-            title = "Registrar Comida",
+            title = "Registrar Calorías",
             label = "Calorías consumidas",
             onDismiss = { showCaloriesDialog = false },
             onConfirm = { input ->
@@ -158,7 +156,7 @@ fun HomeScreen(
             }
         )
     }
-    // --- FIN DE LÓGICA DE DIÁLOGOS ---
+
 
 
     Scaffold(
@@ -196,7 +194,7 @@ fun HomeScreen(
 
             QuickActionsSection(
                 navController = navController,
-                onCaloriesClick = { showCaloriesDialog = true }
+                onCaloriesClick = { navController.navigate("food_log") }
             )
 
             DailyProgressSection(progress = healthData.stepGoalProgress)
@@ -204,7 +202,7 @@ fun HomeScreen(
     }
 }
 
-// ... (Header se queda igual) ...
+
 @Composable
 fun Header(userName: String, onLogoutClicked: () -> Unit) {
 // ... (código igual) ...
