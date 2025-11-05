@@ -24,6 +24,7 @@ import com.example.appvidasalud.ui.theme.view.LoginScreen
 import com.example.appvidasalud.ui.theme.view.RegisterFoodScreen
 import com.example.appvidasalud.ui.theme.view.RegisterScreen
 import com.example.appvidasalud.ui.theme.view.TrainingScreen
+import com.example.appvidasalud.ui.theme.view.GoalsScreen
 
 @Composable
 fun AppNavigation() {
@@ -94,6 +95,14 @@ fun AppNavigation() {
             exitTransition = { slideOutOfContainer(slideOut, animationSpec = tween(slideDuration)) }
         ) {
             RegisterFoodScreen(navController = navController)
+        }
+
+        composable(
+            route = "goals",
+            enterTransition = { slideIntoContainer(slideIn, animationSpec = tween(slideDuration)) },
+            exitTransition = { slideOutOfContainer(slideOut, animationSpec = tween(slideDuration)) }
+        ) {
+            GoalsScreen()
         }
     }
 }

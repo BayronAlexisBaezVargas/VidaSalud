@@ -160,7 +160,7 @@ fun HomeScreen(
 
 
     Scaffold(
-        bottomBar = { AppBottomNavigation() }
+        bottomBar = { AppBottomNavigation(navController) } // <--- Pasar el navController aquí
     ) { padding ->
         Column(
             modifier = Modifier
@@ -430,9 +430,8 @@ fun DailyProgressSection(progress: Float) {
 
 // ... (AppBottomNavigation se queda igual) ...
 @Composable
-fun AppBottomNavigation() {
-// ... (código igual) ...
-    var selectedItem by remember { mutableStateOf(0) }
+fun AppBottomNavigation(navController: NavController) { // <--- Agregar parámetro
+    var selectedItem by remember { mutableIntStateOf(0) }
     val items = listOf("Inicio", "Estadísticas", "Metas", "Perfil")
     val icons = listOf(Icons.Filled.Home, Icons.Filled.BarChart, Icons.Filled.CheckCircle, Icons.Filled.Person)
 
@@ -445,7 +444,18 @@ fun AppBottomNavigation() {
                 icon = { Icon(icons[index], contentDescription = item) },
                 label = { Text(item) },
                 selected = selectedItem == index,
-                onClick = { selectedItem = index },
+                onClick = {
+                    selectedItem = index
+                    // --- LÓGICA DE NAVEGACIÓN AGREGADA ---
+                    when (index) {
+                        0 -> {
+                            // Opcional: Si ya estás en home, no hagas nada o recarga
+                            // navController.navigate("home/...")
+                        }
+                        2 -> navController.navigate("goals") // Navegar a Metas
+                        // Agrega los otros casos (1 y 3) cuando tengas esas pantallas
+                    }
+                },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = GreenPrimary,
                     selectedTextColor = GreenPrimary,
@@ -456,7 +466,6 @@ fun AppBottomNavigation() {
         }
     }
 }
-
 
 // ... (AddDataDialog se queda igual) ...
 @OptIn(ExperimentalMaterial3Api::class)
