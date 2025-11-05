@@ -22,8 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,98 +34,67 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.appvidasalud.model.HealthData
 import com.example.appvidasalud.ui.theme.*
 import com.example.appvidasalud.viewmodel.HealthViewModel
 import com.example.appvidasalud.viewmodel.HealthViewModelFactory
 import java.text.NumberFormat
 import java.util.Locale
-import androidx.navigation.NavController
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-
     healthViewModel: HealthViewModel = viewModel(
         factory = HealthViewModelFactory(LocalContext.current.applicationContext as Application)
     ),
-
     userName: String
 ) {
     LaunchedEffect(key1 = userName) {
         healthViewModel.updateUserName(userName)
     }
 
-
     val uiState by healthViewModel.uiState.collectAsState()
     val healthData = uiState.healthData
-
-    // --- LÓGICA DE PERMISOS (SIN CAMBIOS) ---
     val context = LocalContext.current
+
+    // --- Lógica de Permisos ---
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) { /* Permiso concedido */ } else { /* Permiso denegado */ }
-    }
+    ) { /* No-op */ }
+
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            when (PackageManager.PERMISSION_GRANTED) {
-                ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.ACTIVITY_RECOGNITION
-                ) -> { /* Ya concedido */ }
-                else -> { permissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION) }
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
+                permissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
             }
         }
     }
 
-    // --- LÓGICA DE SENSORES (SIMPLIFICADA) ---
-
-    val sensorManager = remember {
-        context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    }
-    val stepSensor = remember {
-        sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-    }
-
-    // Ya no necesitamos 'initialSteps' aquí
-    // var initialSteps by remember { mutableStateOf(-1) } // <-- BORRAR ESTO
-
+    // --- Lógica de Sensores ---
+    val sensorManager = remember { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
+    val stepSensor = remember { sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) }
     val sensorEventListener = remember {
         object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent?) {
                 if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
-
-                    val currentSensorValue = event.values[0].toInt()
-
-                    // Simplemente enviamos el valor crudo al ViewModel.
-                    // El ViewModel se encarga de la lógica.
-                    healthViewModel.processNewStepData(currentSensorValue)
+                    healthViewModel.processNewStepData(event.values[0].toInt())
                 }
             }
-            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-                // No es necesario
-            }
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
     }
 
-    // Registra y cancela el listener (Sin cambios)
     DisposableEffect(Unit) {
         if (stepSensor != null) {
-            sensorManager.registerListener(
-                sensorEventListener,
-                stepSensor,
-                SensorManager.SENSOR_DELAY_UI
-            )
+            sensorManager.registerListener(sensorEventListener, stepSensor, SensorManager.SENSOR_DELAY_UI)
         }
         onDispose {
             sensorManager.unregisterListener(sensorEventListener)
         }
     }
 
-
-
-
+    // --- Diálogos ---
     var showCaloriesDialog by remember { mutableStateOf(false) }
     var showSleepDialog by remember { mutableStateOf(false) }
 
@@ -136,76 +103,54 @@ fun HomeScreen(
             title = "Registrar Calorías",
             label = "Calorías consumidas",
             onDismiss = { showCaloriesDialog = false },
-            onConfirm = { input ->
-                val calories = input.toIntOrNull() ?: 0
-                healthViewModel.addCalories(calories)
-                showCaloriesDialog = false
-            }
+            onConfirm = { healthViewModel.addCalories(it.toIntOrNull() ?: 0); showCaloriesDialog = false }
         )
     }
-
     if (showSleepDialog) {
         AddDataDialog(
             title = "Registrar Sueño",
             label = "Horas de sueño (ej: 7.5)",
             onDismiss = { showSleepDialog = false },
-            onConfirm = { input ->
-                val hours = input.toFloatOrNull() ?: 0f
-                healthViewModel.updateSleep(hours)
-                showSleepDialog = false
-            }
+            onConfirm = { healthViewModel.updateSleep(it.toFloatOrNull() ?: 0f); showSleepDialog = false }
         )
     }
 
-
-
-    Scaffold(
-        bottomBar = { AppBottomNavigation(navController) } // <--- Pasar el navController aquí
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(ScreenBackground)
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Header(
-                userName = uiState.userName,
-                onLogoutClicked = {
-
-                    // YA NO NECESITAMOS BORRAR LOS PASOS AQUÍ
-                    // initialSteps = -1  // <-- BORRAR ESTO
-                    // healthViewModel.updateSteps(0) // <-- BORRAR ESTO
-
-                    navController.navigate("login") {
-                        popUpTo(navController.graph.startDestinationId) {
-                            inclusive = true
-                        }
-                    }
+    // --- Contenido Principal (Sin Scaffold) ---
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(ScreenBackground)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Header(
+            userName = uiState.userName,
+            onLogoutClicked = {
+                navController.navigate("login") {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
-            )
+            }
+        )
 
-            // (El resto de la UI no cambia)
-            SummaryGrid(
-                healthData = healthData,
-                onCaloriesCardClick = { showCaloriesDialog = true },
-                onSleepCardClick = { showSleepDialog = true }
-            )
+        SummaryGrid(
+            healthData = healthData,
+            onCaloriesCardClick = { showCaloriesDialog = true },
+            onSleepCardClick = { showSleepDialog = true }
+        )
 
-            QuickActionsSection(
-                navController = navController,
-                onCaloriesClick = { navController.navigate("food_log") }
-            )
+        QuickActionsSection(
+            navController = navController,
+            onCaloriesClick = { navController.navigate("food_log") }
+        )
 
-            DailyProgressSection(progress = healthData.stepGoalProgress)
-        }
+        DailyProgressSection(progress = healthData.stepGoalProgress)
+
+        // Espacio extra al final para que no quede pegado al borde inferior si hay scroll
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
-
 @Composable
 fun Header(userName: String, onLogoutClicked: () -> Unit) {
-// ... (código igual) ...
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -215,190 +160,95 @@ fun Header(userName: String, onLogoutClicked: () -> Unit) {
             onClick = onLogoutClicked,
             modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.Logout,
-                contentDescription = "Salir de la sesión",
-                tint = Color.White
-            )
+            Icon(Icons.Default.Logout, contentDescription = "Salir", tint = Color.White)
         }
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "VidaSalud",
-                color = TextWhite,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Tu compañero de salud física",
-                color = TextWhite,
-                fontSize = 14.sp
-            )
+            Text("VidaSalud", color = TextWhite, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("Tu compañero de salud física", color = TextWhite, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = "¡Hola, $userName!",
-            )
-            Text(
-                text = "¿Listo para un día saludable?",
-                color = TextWhite,
-                fontSize = 16.sp
-            )
+            Text("¡Hola, $userName!", color = TextWhite, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            Text("¿Listo para un día saludable?", color = TextWhite, fontSize = 16.sp)
         }
     }
 }
 
-
-// ... (SummaryGrid se queda igual) ...
 @Composable
-fun SummaryGrid(
-    healthData: HealthData,
-    onCaloriesCardClick: () -> Unit,
-    onSleepCardClick: () -> Unit
-) {
-// ... (código igual) ...
+fun SummaryGrid(healthData: HealthData, onCaloriesCardClick: () -> Unit, onSleepCardClick: () -> Unit) {
     Column(modifier = Modifier.padding(16.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            StatCard(
-                icon = Icons.Default.DirectionsWalk,
-                value = NumberFormat.getNumberInstance(Locale.US).format(healthData.steps),
-                label = "Pasos",
-                modifier = Modifier.weight(1f)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            StatCard(
-                icon = Icons.Default.LocalFireDepartment,
-                value = healthData.calories.toString(),
-                label = "Calorías",
-                modifier = Modifier.weight(1f),
-                onClick = onCaloriesCardClick
-            )
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            StatCard(Icons.Default.DirectionsWalk, NumberFormat.getNumberInstance(Locale.US).format(healthData.steps), "Pasos", Modifier.weight(1f))
+            StatCard(Icons.Default.LocalFireDepartment, healthData.calories.toString(), "Calorías", Modifier.weight(1f), onClick = onCaloriesCardClick)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            StatCard(
-                icon = Icons.Default.WaterDrop,
-                value = "${healthData.waterLiters}L",
-                label = "Agua bebida",
-                modifier = Modifier.weight(1f)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            StatCard(
-                icon = Icons.Default.Bedtime,
-                value = "${healthData.sleepHours}h",
-                label = "Sueño",
-                modifier = Modifier.weight(1f),
-                onClick = onSleepCardClick
-            )
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            StatCard(Icons.Default.WaterDrop, "${healthData.waterLiters}L", "Agua bebida", Modifier.weight(1f))
+            StatCard(Icons.Default.Bedtime, "${healthData.sleepHours}h", "Sueño", Modifier.weight(1f), onClick = onSleepCardClick)
         }
     }
 }
 
-
-// ... (StatCard se queda igual) ...
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StatCard(
-    icon: ImageVector,
-    value: String,
-    label: String,
-    modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null
-) {
-// ... (código igual) ...
+fun StatCard(icon: ImageVector, value: String, label: String, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
     Card(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = CardBackground),
         modifier = modifier
             .aspectRatio(1f)
-            .then(
-                if (onClick != null) Modifier.clickable { onClick() } else Modifier
-            )
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(imageVector = icon, contentDescription = label, tint = IconTintColor, modifier = Modifier.size(32.dp))
+            Icon(icon, contentDescription = label, tint = IconTintColor, modifier = Modifier.size(32.dp))
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = value, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-            Text(text = label, fontSize = 14.sp, color = Color.Gray)
+            Text(value, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(label, fontSize = 14.sp, color = Color.Gray)
         }
     }
 }
 
-
-// ... (QuickActionsSection se queda igual) ...
 @Composable
-fun QuickActionsSection(
-    navController: NavController,
-    onCaloriesClick: () -> Unit
-) {
-// ... (código igual) ...
+fun QuickActionsSection(navController: NavController, onCaloriesClick: () -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text("Acciones Rápidas", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 16.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            QuickActionButton("Entrenar", Icons.Default.FitnessCenter, OrangeAction, Modifier.weight(1f)) {
-                navController.navigate("training")
-            }
-            QuickActionButton("Beber Agua", Icons.Default.LocalDrink, BlueAction, Modifier.weight(1f)) { /* Acción futura */ }
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            QuickActionButton("Entrenar", Icons.Default.FitnessCenter, OrangeAction, Modifier.weight(1f)) { navController.navigate("training") }
+            QuickActionButton("Beber Agua", Icons.Default.LocalDrink, BlueAction, Modifier.weight(1f)) { /* TODO */ }
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-
-            QuickActionButton(
-                text = "Registrar Comida",
-                icon = Icons.Default.Restaurant,
-                color = PinkAction,
-                modifier = Modifier.weight(1f),
-                onClick = onCaloriesClick
-            )
-
-            QuickActionButton("Peso", Icons.Default.MonitorWeight, YellowAction, Modifier.weight(1f)) { /* Acción futura */ }
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            QuickActionButton("Registrar Comida", Icons.Default.Restaurant, PinkAction, Modifier.weight(1f), onClick = onCaloriesClick)
+            QuickActionButton("Peso", Icons.Default.MonitorWeight, YellowAction, Modifier.weight(1f)) { /* TODO */ }
         }
     }
 }
 
-
-// ... (QuickActionButton se queda igual) ...
 @Composable
 fun QuickActionButton(text: String, icon: ImageVector, color: Color, modifier: Modifier = Modifier, onClick: () -> Unit) {
-// ... (código igual) ...
     Button(
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(containerColor = color),
-        modifier = modifier
-            .height(80.dp)
-            .fillMaxWidth()
+        modifier = modifier.height(80.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(imageVector = icon, contentDescription = text, tint = Color.White)
+            Icon(icon, null, tint = Color.White)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = text, color = Color.White, fontWeight = FontWeight.Bold)
+            Text(text, color = Color.White, fontWeight = FontWeight.Bold)
         }
     }
 }
 
-
-// ... (DailyProgressSection se queda igual) ...
 @Composable
 fun DailyProgressSection(progress: Float) {
-// ... (código igual) ...
     Column(modifier = Modifier.padding(16.dp)) {
         Text("Progreso Diario", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 16.dp))
         Card(
@@ -415,10 +265,7 @@ fun DailyProgressSection(progress: Float) {
                 Spacer(modifier = Modifier.height(8.dp))
                 LinearProgressIndicator(
                     progress = { progress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp)),
+                    modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
                     color = GreenPrimary,
                     trackColor = Color.LightGray
                 )
@@ -427,61 +274,13 @@ fun DailyProgressSection(progress: Float) {
     }
 }
 
-
-// ... (AppBottomNavigation se queda igual) ...
-@Composable
-fun AppBottomNavigation(navController: NavController) { // <--- Agregar parámetro
-    var selectedItem by remember { mutableIntStateOf(0) }
-    val items = listOf("Inicio", "Estadísticas", "Metas", "Perfil")
-    val icons = listOf(Icons.Filled.Home, Icons.Filled.BarChart, Icons.Filled.CheckCircle, Icons.Filled.Person)
-
-    NavigationBar(
-        containerColor = CardBackground,
-        tonalElevation = 8.dp
-    ) {
-        items.forEachIndexed { index, item ->
-            NavigationBarItem(
-                icon = { Icon(icons[index], contentDescription = item) },
-                label = { Text(item) },
-                selected = selectedItem == index,
-                onClick = {
-                    selectedItem = index
-                    // --- LÓGICA DE NAVEGACIÓN AGREGADA ---
-                    when (index) {
-                        0 -> {
-                            // Opcional: Si ya estás en home, no hagas nada o recarga
-                            // navController.navigate("home/...")
-                        }
-                        2 -> navController.navigate("goals") // Navegar a Metas
-                        // Agrega los otros casos (1 y 3) cuando tengas esas pantallas
-                    }
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = GreenPrimary,
-                    selectedTextColor = GreenPrimary,
-                    unselectedIconColor = Color.Gray,
-                    unselectedTextColor = Color.Gray
-                )
-            )
-        }
-    }
-}
-
-// ... (AddDataDialog se queda igual) ...
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddDataDialog(
-    title: String,
-    label: String,
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
-) {
-// ... (código igual) ...
+fun AddDataDialog(title: String, label: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     var textInput by remember { mutableStateOf("") }
-
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = title) },
+        title = { Text(title) },
         text = {
             OutlinedTextField(
                 value = textInput,
@@ -491,19 +290,7 @@ fun AddDataDialog(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
         },
-        confirmButton = {
-            Button(
-                onClick = { onConfirm(textInput) }
-            ) {
-                Text("Guardar")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss
-            ) {
-                Text("Cancelar")
-            }
-        }
+        confirmButton = { Button(onClick = { onConfirm(textInput) }) { Text("Guardar") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
     )
 }

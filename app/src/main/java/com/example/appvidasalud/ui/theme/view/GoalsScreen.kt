@@ -10,13 +10,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,7 +23,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.appvidasalud.ui.theme.GreenPrimary
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -37,7 +33,7 @@ import java.util.Locale
 // Modelo de datos
 data class Goal(val id: Int, val description: String, var isCompleted: Boolean, val date: LocalDate)
 
-// Lista dummy (simulando base de datos)
+// Lista dummy
 val dummyGoals = mutableStateListOf(
     Goal(1, "Haber bajado 10kg", true, LocalDate.now().minusDays(3)),
     Goal(3, "Correr 5km sin parar", false, LocalDate.now()),
@@ -50,12 +46,10 @@ fun getGoalsForDate(date: LocalDate): List<Goal> {
 
 fun addGoal(description: String, date: LocalDate) {
     if (description.isNotBlank()) {
-        // Usamos un ID simple basado en el tiempo para evitar duplicados en este ejemplo
         dummyGoals.add(Goal((System.currentTimeMillis() % 10000).toInt(), description, false, date))
     }
 }
 
-// NUEVA FUNCIÓN: Eliminar meta
 fun deleteGoal(goal: Goal) {
     dummyGoals.remove(goal)
 }
@@ -63,14 +57,13 @@ fun deleteGoal(goal: Goal) {
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GoalsScreen(navController: NavController? = null) {
+fun GoalsScreen() {
     var currentMonth by remember { mutableStateOf(LocalDate.now().withDayOfMonth(1)) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var showAddGoalDialog by remember { mutableStateOf(false) }
     var newGoalText by remember { mutableStateOf("") }
 
     Scaffold(
-        // 3. CORRECCIÓN UI: Usamos el FAB nativo del Scaffold para que no tape contenido
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddGoalDialog = true },
@@ -79,43 +72,8 @@ fun GoalsScreen(navController: NavController? = null) {
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Agregar Meta")
             }
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 8.dp
-            ) {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
-                    label = { Text("Inicio") },
-                    selected = false,
-                    onClick = { navController?.popBackStack("home", inclusive = false) }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.BarChart, contentDescription = "Estadísticas") },
-                    label = { Text("Estadísticas") },
-                    selected = false,
-                    onClick = { /* TODO */ }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Check, contentDescription = "Metas") },
-                    label = { Text("Metas") },
-                    selected = true,
-                    onClick = { },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = GreenPrimary,
-                        selectedTextColor = GreenPrimary,
-                        indicatorColor = GreenPrimary.copy(alpha = 0.2f)
-                    )
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
-                    label = { Text("Perfil") },
-                    selected = false,
-                    onClick = { /* TODO */ }
-                )
-            }
         }
+        // SIN bottomBar aquí, ya la tiene MainScreen
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -163,7 +121,7 @@ fun GoalsScreen(navController: NavController? = null) {
                     }
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Días Semana (LUN-DOM)
+                    // Días Semana
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                         DayOfWeek.values().forEach { dayOfWeek ->
                             Text(
@@ -174,10 +132,9 @@ fun GoalsScreen(navController: NavController? = null) {
                     }
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // 1. CORRECCIÓN CALENDARIO: Ajuste preciso de días
+                    // Cuadrícula de Días
                     val firstDayOfMonth = currentMonth.withDayOfMonth(1)
                     val daysInMonth = currentMonth.lengthOfMonth()
-                    // DayOfWeek.MONDAY es 1. Restamos 1 para que Lunes sea índice 0, Martes 1, etc.
                     val emptyCells = firstDayOfMonth.dayOfWeek.value - 1
 
                     val daysGrid = mutableListOf<LocalDate?>()
@@ -193,7 +150,7 @@ fun GoalsScreen(navController: NavController? = null) {
                                     val day = daysGrid[index]
                                     Box(
                                         modifier = Modifier
-                                            .size(36.dp) // Un poco más pequeños para que entren mejor
+                                            .size(36.dp)
                                             .padding(2.dp)
                                             .background(if (day == selectedDate) GreenPrimary else Color.Transparent, CircleShape)
                                             .clickable(enabled = day != null) { day?.let { selectedDate = it } },
@@ -224,14 +181,18 @@ fun GoalsScreen(navController: NavController? = null) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f) // 3. CORRECCIÓN UI: Esto asegura que ocupe todo el espacio restante
+                    .weight(1f)
                     .padding(horizontal = 16.dp)
             ) {
-                Text(
-                    text = selectedDate.format(DateTimeFormatter.ofPattern("EEEE dd 'de' MMMM", Locale("es", "ES"))).replaceFirstChar { it.uppercase() },
-                    style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = GreenPrimary,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Check, null, tint = GreenPrimary, modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = selectedDate.format(DateTimeFormatter.ofPattern("EEEE dd 'de' MMMM", Locale("es", "ES"))).replaceFirstChar { it.uppercase() },
+                        style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = GreenPrimary
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
 
                 val goals = getGoalsForDate(selectedDate)
                 if (goals.isEmpty()) {
@@ -241,7 +202,7 @@ fun GoalsScreen(navController: NavController? = null) {
                 } else {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(bottom = 80.dp) // Espacio extra al final para que el FAB no tape el último item
+                        contentPadding = PaddingValues(bottom = 80.dp)
                     ) {
                         items(goals) { goal ->
                             GoalItem(goal = goal)
@@ -279,7 +240,7 @@ fun GoalsScreen(navController: NavController? = null) {
 fun GoalItem(goal: Goal) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)), // Color de fondo muy suave
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
@@ -300,7 +261,6 @@ fun GoalItem(goal: Goal) {
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            // 2. CORRECCIÓN: Botón de eliminar
             IconButton(onClick = { deleteGoal(goal) }, modifier = Modifier.size(24.dp)) {
                 Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Gray.copy(alpha = 0.6f))
             }
