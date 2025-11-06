@@ -36,7 +36,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.appvidasalud.model.HealthData
-import com.example.appvidasalud.ui.theme.*
+import com.example.appvidasalud.ui.theme.* // Sigue importando tus colores de acciones
 import com.example.appvidasalud.viewmodel.HealthViewModel
 import com.example.appvidasalud.viewmodel.HealthViewModelFactory
 import java.text.NumberFormat
@@ -119,7 +119,7 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(ScreenBackground)
+            .background(MaterialTheme.colorScheme.background) // <-- CAMBIO
             .verticalScroll(rememberScrollState())
     ) {
         Header(
@@ -154,13 +154,13 @@ fun Header(userName: String, onLogoutClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(GreenPrimary)
+            .background(MaterialTheme.colorScheme.primary) // <-- CAMBIO
     ) {
         IconButton(
             onClick = onLogoutClicked,
             modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
         ) {
-            Icon(Icons.Default.Logout, contentDescription = "Salir", tint = Color.White)
+            Icon(Icons.Default.Logout, contentDescription = "Salir", tint = MaterialTheme.colorScheme.onPrimary) // <-- CAMBIO
         }
         Column(
             modifier = Modifier
@@ -168,11 +168,11 @@ fun Header(userName: String, onLogoutClicked: () -> Unit) {
                 .padding(vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("VidaSalud", color = TextWhite, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Text("Tu compañero de salud física", color = TextWhite, fontSize = 14.sp)
+            Text("VidaSalud", color = MaterialTheme.colorScheme.onPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold) // <-- CAMBIO
+            Text("Tu compañero de salud física", color = MaterialTheme.colorScheme.onPrimary, fontSize = 14.sp) // <-- CAMBIO
             Spacer(modifier = Modifier.height(24.dp))
-            Text("¡Hola, $userName!", color = TextWhite, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-            Text("¿Listo para un día saludable?", color = TextWhite, fontSize = 16.sp)
+            Text("¡Hola, $userName!", color = MaterialTheme.colorScheme.onPrimary, fontSize = 28.sp, fontWeight = FontWeight.Bold) // <-- CAMBIO
+            Text("¿Listo para un día saludable?", color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp) // <-- CAMBIO
         }
     }
 }
@@ -197,7 +197,7 @@ fun StatCard(icon: ImageVector, value: String, label: String, modifier: Modifier
     Card(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBackground),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), // <-- CAMBIO
         modifier = modifier
             .aspectRatio(1f)
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
@@ -207,10 +207,10 @@ fun StatCard(icon: ImageVector, value: String, label: String, modifier: Modifier
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(icon, contentDescription = label, tint = IconTintColor, modifier = Modifier.size(32.dp))
+            Icon(icon, contentDescription = label, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(32.dp)) // <-- CAMBIO
             Spacer(modifier = Modifier.height(8.dp))
-            Text(value, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-            Text(label, fontSize = 14.sp, color = Color.Gray)
+            Text(value, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) // <-- CAMBIO
+            Text(label, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) // <-- CAMBIO
         }
     }
 }
@@ -218,7 +218,7 @@ fun StatCard(icon: ImageVector, value: String, label: String, modifier: Modifier
 @Composable
 fun QuickActionsSection(navController: NavController, onCaloriesClick: () -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Text("Acciones Rápidas", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 16.dp))
+        Text("Acciones Rápidas", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 16.dp), color = MaterialTheme.colorScheme.onBackground) // <-- CAMBIO
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             QuickActionButton("Entrenar", Icons.Default.FitnessCenter, OrangeAction, Modifier.weight(1f)) { navController.navigate("training") }
             QuickActionButton("Beber Agua", Icons.Default.LocalDrink, BlueAction, Modifier.weight(1f)) { /* TODO */ }
@@ -240,9 +240,9 @@ fun QuickActionButton(text: String, icon: ImageVector, color: Color, modifier: M
         modifier = modifier.height(80.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, null, tint = Color.White)
+            Icon(icon, null, tint = Color.White) // Mantenemos blanco para botones de colores
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text, color = Color.White, fontWeight = FontWeight.Bold)
+            Text(text, color = Color.White, fontWeight = FontWeight.Bold) // Mantenemos blanco
         }
     }
 }
@@ -250,24 +250,24 @@ fun QuickActionButton(text: String, icon: ImageVector, color: Color, modifier: M
 @Composable
 fun DailyProgressSection(progress: Float) {
     Column(modifier = Modifier.padding(16.dp)) {
-        Text("Progreso Diario", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 16.dp))
+        Text("Progreso Diario", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 16.dp), color = MaterialTheme.colorScheme.onBackground) // <-- CAMBIO
         Card(
             shape = RoundedCornerShape(16.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            colors = CardDefaults.cardColors(containerColor = CardBackground),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), // <-- CAMBIO
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Meta de Pasos", style = MaterialTheme.typography.titleMedium)
-                    Text("${(progress * 100).toInt()}%", fontWeight = FontWeight.Bold, color = GreenPrimary)
+                    Text("Meta de Pasos", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface) // <-- CAMBIO
+                    Text("${(progress * 100).toInt()}%", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) // <-- CAMBIO
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 LinearProgressIndicator(
                     progress = { progress },
                     modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
-                    color = GreenPrimary,
-                    trackColor = Color.LightGray
+                    color = MaterialTheme.colorScheme.primary, // <-- CAMBIO
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant // <-- CAMBIO
                 )
             }
         }

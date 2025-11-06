@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.appvidasalud.data.UserPreferencesRepository
-import com.example.appvidasalud.ui.theme.GreenPrimary
+// No importes GreenPrimary, usa el tema
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,14 +44,14 @@ fun ProfileScreen(navController: NavController, onLogout: () -> Unit) {
     val scope = rememberCoroutineScope()
     val userPrefs = remember { UserPreferencesRepository(context) }
 
-    // Estados inicializados vacíos, se cargarán desde DataStore
+    // Estados
     var userName by remember { mutableStateOf("") }
     var userEmail by remember { mutableStateOf("") }
     var userPhone by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Cargar datos guardados al iniciar
+    // Cargar datos
     LaunchedEffect(Unit) {
         userPrefs.userProfileFlow.collect { profile ->
             userName = profile.name
@@ -69,10 +69,17 @@ fun ProfileScreen(navController: NavController, onLogout: () -> Unit) {
         onResult = { uri -> if (uri != null) profileImageUri = uri }
     )
 
+    // Colores del tema
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val onBackgroundColor = MaterialTheme.colorScheme.onBackground
+    val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(backgroundColor) // <-- CAMBIO
             .verticalScroll(rememberScrollState())
     ) {
         // --- Cabecera Verde ---
@@ -80,13 +87,13 @@ fun ProfileScreen(navController: NavController, onLogout: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(180.dp)
-                .background(GreenPrimary),
+                .background(primaryColor), // <-- CAMBIO
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Tu Perfil", style = MaterialTheme.typography.headlineMedium.copy(color = Color.White, fontWeight = FontWeight.Bold))
+                Text("Tu Perfil", style = MaterialTheme.typography.headlineMedium.copy(color = onPrimaryColor, fontWeight = FontWeight.Bold)) // <-- CAMBIO
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Aquí podrás ver y actualizar tu información", style = MaterialTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.9f)))
+                Text("Aquí podrás ver y actualizar tu información", style = MaterialTheme.typography.bodyMedium.copy(color = onPrimaryColor.copy(alpha = 0.9f))) // <-- CAMBIO
             }
         }
 
@@ -106,10 +113,11 @@ fun ProfileScreen(navController: NavController, onLogout: () -> Unit) {
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    Icon(Icons.Default.Person, null, tint = Color.Gray, modifier = Modifier.size(120.dp).clip(CircleShape).background(Color(0xFFE0E0E0)).padding(20.dp).clickable { photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) })
+                    Icon(Icons.Default.Person, null, tint = onSurfaceVariantColor, // <-- CAMBIO
+                        modifier = Modifier.size(120.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)).padding(20.dp).clickable { photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) // <-- CAMBIO
                 }
-                Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(GreenPrimary).clickable { photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Edit, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(primaryColor).clickable { photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, contentAlignment = Alignment.Center) { // <-- CAMBIO
+                    Icon(Icons.Default.Edit, null, tint = onPrimaryColor, modifier = Modifier.size(18.dp)) // <-- CAMBIO
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -119,48 +127,56 @@ fun ProfileScreen(navController: NavController, onLogout: () -> Unit) {
                 if (isEditingName) {
                     OutlinedTextField(
                         value = tempName, onValueChange = { tempName = it }, singleLine = true, modifier = Modifier.weight(1f, false),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = GreenPrimary, cursorColor = GreenPrimary)
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = primaryColor, cursorColor = primaryColor) // <-- CAMBIO
                     )
                     IconButton(onClick = {
                         userName = tempName
                         isEditingName = false
-                        // Guardado rápido solo del nombre
                         scope.launch { userPrefs.updateUserProfile(userName, userEmail, userPhone, null) }
-                    }) { Icon(Icons.Default.Check, null, tint = GreenPrimary) }
+                    }) { Icon(Icons.Default.Check, null, tint = primaryColor) } // <-- CAMBIO
                 } else {
-                    Text(userName, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold))
-                    IconButton(onClick = { tempName = userName; isEditingName = true }) { Icon(Icons.Default.Edit, null) }
+                    Text(userName, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, color = onBackgroundColor)) // <-- CAMBIO
+                    IconButton(onClick = { tempName = userName; isEditingName = true }) { Icon(Icons.Default.Edit, null, tint = onBackgroundColor) } // <-- CAMBIO
                 }
             }
-            Text(userEmail.ifBlank { "Sin email registrado" }, color = Color.Gray, fontSize = 14.sp)
+            Text(userEmail.ifBlank { "Sin email registrado" }, color = onSurfaceVariantColor, fontSize = 14.sp) // <-- CAMBIO
         }
 
-        Divider(modifier = Modifier.padding(horizontal = 16.dp).offset(y = (-30).dp), thickness = 2.dp, color = GreenPrimary.copy(alpha = 0.3f))
+        Divider(modifier = Modifier.padding(horizontal = 16.dp).offset(y = (-30).dp), thickness = 2.dp, color = primaryColor.copy(alpha = 0.3f)) // <-- CAMBIO
 
         // --- Sección Acceso y Seguridad ---
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).offset(y = (-10).dp)) {
-            Text("Acceso y Seguridad", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), modifier = Modifier.padding(bottom = 16.dp))
+            Text("Acceso y Seguridad", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, color = onBackgroundColor), modifier = Modifier.padding(bottom = 16.dp)) // <-- CAMBIO
 
-            OutlinedTextField(value = userEmail, onValueChange = { userEmail = it }, label = { Text("E-mail") }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = GreenPrimary, focusedLabelColor = GreenPrimary, cursorColor = GreenPrimary))
+            val textFieldColors = OutlinedTextFieldDefaults.colors( // <-- Definición de colores para TextFields
+                focusedBorderColor = primaryColor,
+                focusedLabelColor = primaryColor,
+                cursorColor = primaryColor
+            )
+
+            OutlinedTextField(value = userEmail, onValueChange = { userEmail = it }, label = { Text("E-mail") }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), colors = textFieldColors) // <-- CAMBIO
             Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(value = userPhone, onValueChange = { userPhone = it }, label = { Text("Teléfono") }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = GreenPrimary, focusedLabelColor = GreenPrimary, cursorColor = GreenPrimary))
+            OutlinedTextField(value = userPhone, onValueChange = { userPhone = it }, label = { Text("Teléfono") }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), colors = textFieldColors) // <-- CAMBIO
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = newPassword, onValueChange = { newPassword = it }, label = { Text("Nueva Contraseña") }, placeholder = { Text("Dejar en blanco para mantener actual") },
                 modifier = Modifier.fillMaxWidth(), singleLine = true, visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = GreenPrimary, focusedLabelColor = GreenPrimary, cursorColor = GreenPrimary)
+                colors = textFieldColors // <-- CAMBIO
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            Button(onClick = { showSaveDialog = true }, modifier = Modifier.fillMaxWidth().height(50.dp), colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary), shape = RoundedCornerShape(12.dp)) {
-                Icon(Icons.Default.Save, null, tint = Color.White); Spacer(modifier = Modifier.width(8.dp))
-                Text("Guardar Cambios", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Button(onClick = { showSaveDialog = true }, modifier = Modifier.fillMaxWidth().height(50.dp), colors = ButtonDefaults.buttonColors(containerColor = primaryColor), shape = RoundedCornerShape(12.dp)) { // <-- CAMBIO
+                Icon(Icons.Default.Save, null, tint = onPrimaryColor); Spacer(modifier = Modifier.width(8.dp)) // <-- CAMBIO
+                Text("Guardar Cambios", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = onPrimaryColor) // <-- CAMBIO
             }
             Spacer(modifier = Modifier.height(40.dp))
 
-            Button(onClick = onLogout, modifier = Modifier.fillMaxWidth().height(50.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFE0E0)), shape = RoundedCornerShape(12.dp)) {
-                Icon(Icons.Default.ExitToApp, null, tint = Color(0xFFD32F2F)); Spacer(modifier = Modifier.width(8.dp))
-                Text("Cerrar Sesión", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            val errorContainerColor = MaterialTheme.colorScheme.errorContainer
+            val onErrorContainerColor = MaterialTheme.colorScheme.onErrorContainer
+
+            Button(onClick = onLogout, modifier = Modifier.fillMaxWidth().height(50.dp), colors = ButtonDefaults.buttonColors(containerColor = errorContainerColor), shape = RoundedCornerShape(12.dp)) { // <-- CAMBIO
+                Icon(Icons.Default.ExitToApp, null, tint = onErrorContainerColor); Spacer(modifier = Modifier.width(8.dp)) // <-- CAMBIO
+                Text("Cerrar Sesión", color = onErrorContainerColor, fontWeight = FontWeight.Bold, fontSize = 16.sp) // <-- CAMBIO
             }
             Spacer(modifier = Modifier.height(32.dp))
         }
@@ -170,22 +186,20 @@ fun ProfileScreen(navController: NavController, onLogout: () -> Unit) {
     if (showSaveDialog) {
         AlertDialog(
             onDismissRequest = { showSaveDialog = false },
-            icon = { Icon(Icons.Default.Save, null, tint = GreenPrimary) },
+            icon = { Icon(Icons.Default.Save, null, tint = primaryColor) }, // <-- CAMBIO
             title = { Text("Confirmar cambios") },
             text = { Text(if (newPassword.isNotBlank()) "¿Estás seguro de que deseas actualizar tu información y CAMBIAR TU CONTRASEÑA?" else "¿Deseas guardar los cambios en tu perfil?") },
             confirmButton = {
                 TextButton(onClick = {
-                    // --- AQUÍ ESTÁ LA MAGIA: GUARDADO REAL ---
                     scope.launch {
                         userPrefs.updateUserProfile(userName, userEmail, userPhone, newPassword.ifBlank { null })
-                        newPassword = "" // Limpiamos el campo por seguridad
+                        newPassword = ""
                         showSaveDialog = false
-                        // Opcional: Mostrar un Snackbar confirmando el guardado
                     }
-                }) { Text("Confirmar", color = GreenPrimary, fontWeight = FontWeight.Bold) }
+                }) { Text("Confirmar", color = primaryColor, fontWeight = FontWeight.Bold) } // <-- CAMBIO
             },
-            dismissButton = { TextButton(onClick = { showSaveDialog = false }) { Text("Cancelar", color = Color.Gray) } },
-            containerColor = Color.White
+            dismissButton = { TextButton(onClick = { showSaveDialog = false }) { Text("Cancelar", color = onSurfaceVariantColor) } }, // <-- CAMBIO
+            containerColor = MaterialTheme.colorScheme.surface // <-- CAMBIO
         )
     }
 }
